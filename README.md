@@ -1,7 +1,7 @@
 # 期末專題 通貨膨脹 你關心蛋嗎?
 
 ## 作品連結
-[https://github.com/mdwiwi0130/web_wk4](https://github.com/mdwiwi0130/web_wk4)
+[github.com/mdwiwi0130/WebFinalProjectD1211450](https://github.com/mdwiwi0130/WebFinalProjectD1211450)
 
 ## 專案介紹
 
