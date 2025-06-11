@@ -8,6 +8,7 @@ const port = 3000;
 
 // 靜態文件服務
 app.use(express.static('public'));
+app.use(express.json()); // 添加JSON解析中間件
 
 // 添加 CORS 支持
 app.use((req, res, next) => {
@@ -25,11 +26,19 @@ const db = new sqlite3.Database(path.join(__dirname, 'db', 'prices.db'), (err) =
   }
 });
 
-// 執行爬蟲
-app.post('/api/crawler/run', async (req, res) => {
+// 執行爬蟲 - 只獲取資料，不儲存
+app.post('/api/crawler/get-data', async (req, res) => {
     try {
-        console.log('開始執行爬蟲...');
-        const pythonProcess = spawn('python', ['fish_price_crawler/crawler.py']);
+        const { fishName } = req.body;
+        console.log(`開始執行爬蟲獲取資料，搜尋魚種：${fishName || '吳郭魚'}...`);
+        
+        // 將魚種名稱和資料模式作為參數傳遞給Python腳本
+        const args = ['fish_price_crawler/crawler.py'];
+        if (fishName) {
+            args.push(fishName);
+        }
+        args.push('data_only'); // 只返回資料，不儲存
+        const pythonProcess = spawn('python', args);
         
         let output = '';
         let errorOutput = '';
@@ -50,21 +59,28 @@ app.post('/api/crawler/run', async (req, res) => {
             pythonProcess.on('close', (code) => {
                 console.log(`爬蟲進程退出，退出碼: ${code}`);
                 if (code === 0) {
-                    // 從輸出中提取最後的狀態資訊
-                    const statusMatch = output.match(/爬蟲執行狀態：\n-+\n(.*?)$/s);
-                    const status = statusMatch ? statusMatch[1].trim() : '爬蟲執行完成';
-                    resolve(status);
+                    try {
+                        // 嘗試解析JSON輸出
+                        const lines = output.trim().split('\n');
+                        const lastLine = lines[lines.length - 1];
+                        const crawlerResult = JSON.parse(lastLine);
+                        resolve(crawlerResult);
+                    } catch (parseError) {
+                        console.error('解析爬蟲輸出失敗:', parseError);
+                        resolve({ success: false, error: '解析爬蟲輸出失敗', output: output });
+                    }
                 } else {
                     reject(new Error(`爬蟲執行失敗，退出碼：${code}\n${errorOutput}`));
                 }
             });
-        }).then(status => {
-            res.json({ status });
+        }).then(result => {
+            res.json(result);
         }).catch(error => {
             console.error('爬蟲執行錯誤:', error);
             res.status(500).json({ 
-                status: `爬蟲執行失敗: ${error.message}`,
-                error: errorOutput
+                success: false,
+                error: `爬蟲執行失敗: ${error.message}`,
+                errorOutput: errorOutput
             });
         });
         
@@ -73,6 +89,54 @@ app.post('/api/crawler/run', async (req, res) => {
         res.status(500).json({ 
             status: `執行爬蟲時發生錯誤: ${error.message}`,
             error: error.stack
+        });
+    }
+});
+
+// 儲存確認的爬蟲資料
+app.post('/api/crawler/save-data', (req, res) => {
+    try {
+        const { date, fish_name, price } = req.body;
+        console.log('儲存確認的資料:', { date, fish_name, price });
+        
+        // 檢查資料是否已存在
+        const checkSql = 'SELECT COUNT(*) as count FROM tilapia_prices WHERE date = ? AND product_name = ?';
+        db.get(checkSql, [date, fish_name], (err, result) => {
+            if (err) {
+                console.error('檢查資料失敗:', err);
+                res.status(500).json({ error: '檢查資料失敗' });
+                return;
+            }
+            
+            if (result.count > 0) {
+                res.json({ 
+                    success: false, 
+                    message: `資料已存在：日期=${date}, 魚種=${fish_name}` 
+                });
+                return;
+            }
+            
+            // 插入新資料
+            const insertSql = 'INSERT INTO tilapia_prices (date, product_name, avg_price) VALUES (?, ?, ?)';
+            db.run(insertSql, [date, fish_name, price], function(err) {
+                if (err) {
+                    console.error('儲存資料失敗:', err);
+                    res.status(500).json({ error: '儲存資料失敗' });
+                    return;
+                }
+                
+                res.json({ 
+                    success: true, 
+                    message: `成功儲存資料：日期=${date}, 魚種=${fish_name}, 價格=${price}`,
+                    id: this.lastID
+                });
+            });
+        });
+        
+    } catch (error) {
+        console.error('儲存資料時發生錯誤:', error);
+        res.status(500).json({ 
+            error: `儲存資料時發生錯誤: ${error.message}`
         });
     }
 });

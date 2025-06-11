@@ -1,17 +1,30 @@
 {
-  "name": "fish-price-crawler",
-  "version": "1.0.0",
-  "description": "吳郭魚價格爬蟲系統",
+  "name": "fish-price-tracker",
+  "version": "2.0.0",
+  "description": "🐟 現代化吳郭魚價格追蹤系統 - 採用現代UI設計與響應式布局",
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
-    "dev": "nodemon app.js"
+    "dev": "nodemon app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "keywords": [
+    "fish",
+    "price",
+    "tracker",
+    "tilapia",
+    "tailwindcss",
+    "modern-ui"
+  ],
   "dependencies": {
     "express": "^4.18.2",
-    "sqlite3": "^5.1.7"
+    "sqlite3": "^5.1.7",
+    "axios": "^1.6.0",
+    "cheerio": "^1.0.0-rc.12"
   },
   "devDependencies": {
     "nodemon": "^3.0.2"
-  }
+  },
+  "author": "現代化網頁開發團隊",
+  "license": "MIT"
 }

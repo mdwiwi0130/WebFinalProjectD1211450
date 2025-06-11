@@ -6,3 +6,124 @@ body {
 a {
   color: #00B7FF;
 }
+
+/* 額外的動畫效果 */
+.fish-swim {
+  animation: swim 3s ease-in-out infinite;
+}
+
+@keyframes swim {
+  0%, 100% {
+    transform: translateX(0) rotateY(0deg);
+  }
+  50% {
+    transform: translateX(10px) rotateY(180deg);
+  }
+}
+
+/* 漸變按鈕效果 */
+.btn-gradient-hover {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.btn-gradient-hover::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  transition: left 0.5s ease;
+}
+
+.btn-gradient-hover:hover::before {
+  left: 100%;
+}
+
+/* 卡片浮起效果 */
+.card-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-hover:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* 搜尋框動畫 */
+.search-focus {
+  transition: all 0.3s ease;
+}
+
+.search-focus:focus {
+  transform: scale(1.02);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* 表格動畫效果 */
+.table-row-enter {
+  animation: slideInUp 0.5s ease-out;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 數字動畫 */
+.number-animate {
+  animation: numberPulse 2s ease-in-out infinite;
+}
+
+@keyframes numberPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/* 載入頁面效果 */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  opacity: 1;
+  transition: opacity 0.5s ease-out;
+}
+
+.loading-overlay.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.loading-fish {
+  font-size: 3rem;
+  animation: loadingSwim 2s ease-in-out infinite;
+}
+
+@keyframes loadingSwim {
+  0%, 100% {
+    transform: translateX(-20px) rotate(-5deg);
+  }
+  50% {
+    transform: translateX(20px) rotate(5deg);
+  }
+}
